@@ -1,0 +1,7 @@
+[package]
+name = "study-guide"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Marceline Cramer"]
+license = "MIT"
+description = "Content-first utilities to create study guides."
