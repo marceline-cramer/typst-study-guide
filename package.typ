@@ -1,5 +1,8 @@
+#import "@preview/suiji:0.4.0"
+
 #let renderMode = state("renderMode")
 #let questionCounter = state("questions")
+#let rngSeed = state("rngSeed")
 
 #let numberSection = numbering.with("1a.")
 
@@ -26,6 +29,8 @@
   let num = numberSection(..questionCounter.get().rev());
   questionCounter.update(((head, ..tail)) => (head + 1, ..tail));
 
+  rngSeed.update(num => num + 1);
+
   grid(
     columns: (2em, auto),
     inset: .5em,
@@ -37,6 +42,7 @@
 #let renderWithMode(inner, mode) = {
   renderMode.update(mode);
   questionCounter.update((1,));
+  rngSeed.update(1);
   context inner
 };
 
@@ -68,3 +74,47 @@
   // question/answer functionality is handled by blank()
   basicQuestion(inner, inner)
 };
+
+#let selectionBox(contents) = [
+  #box(inset: .4em, stroke: black, baseline: .1em)
+  #h(.5em)
+  #contents \
+]
+
+#let multipleChoice(prompt, correct, incorrect) = context {
+  let rawChoices = ((true, correct),) + incorrect.map(choice => (false, choice));
+
+  let rng = suiji.gen-rng-f(rngSeed.get());
+  let (_rng, shuffled) = suiji.shuffle-f(rng, rawChoices);
+
+  let choices = shuffled.enumerate().map(((idx, (isCorrect, choice))) => (numbering("A", idx + 1), isCorrect, choice));
+
+  let questionChoices = choices.map(((number, _, choice)) => selectionBox[
+    #number. #choice
+  ])
+  .join();
+
+  let question = [ #prompt \ #questionChoices ];
+
+  let (answerNum, _, answerChoice) = choices.find(((_, isCorrect, _)) => isCorrect);
+
+  let answer = [ #answerNum: #answerChoice ];
+
+  basicQuestion(question, answer);
+}
+
+#let trueOrFalse(prompt, isTrue) = {
+  let question = [
+    #prompt \
+    #selectionBox([True])
+    #selectionBox([False])
+  ]
+
+  let answer = if isTrue {
+    [True]
+  } else {
+    [False]
+  };
+
+  basicQuestion(question, answer)
+}

@@ -1,1 +1,1 @@
-#import "package.typ": render, section, fillBlanks, blank, writtenResponse
+#import "package.typ": render, section, fillBlanks, blank, writtenResponse, multipleChoice, trueOrFalse
